@@ -1,30 +1,32 @@
 
-<template id = "rtftemplate">{\rtf1\ansi\ansicpg1252\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil\fcharset0 Arial;}{\f2\fnil\fcharset2 Symbol;}}
+<template id = "rtftemplate">{\rtf1\ansi\ansicpg1252\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Courier;}{\f1\fnil\fcharset0 Calibri;}{\f2\fnil\fcharset2 Symbol;}}
+{\colortbl ;\red255\green0\blue0;\red0\green176\blue80;}
 {\*\generator Riched20 10.0.14393}\viewkind4\uc1
-\pard\sa200\sl276\slmult1\f0\fs22\lang7
-Hi, this is a  test phrase!\par
-\b Hi, this is a  test phrase!\par
+\pard\sa200\sl276\slmult1\f0\fs22\lang7 Hi, this is a  test phrase!\par
+In another font \'e4 \'fc \'f6\par
+\{content\}\b Hi, this is a  test phrase!\par
 \ul Hi, this is a  test phrase!\par
-\i Hi, this is a  test phrase!\par
-\ulnone\b0\i0\f1\fs20 Hi, this is a  test phrase!\par
+\cf1\i Hi, this is a  test phrase!\cf0\par
+\cf2\ulnone\b0\i0\fs20 Hi, this is a  test phrase!\cf0\par
 
 \pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 aitem\par
 
 \pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl240\slmult1\par
 
-\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1\f0\fs22\par
-{\pntext\f2\'B7\tab}\f1\fs20 bitem\f0\fs22\par
-{\pntext\f2\'B7\tab}\f1\fs20 citem\f0\fs22\par
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1\fs22\par
+{\pntext\f2\'B7\tab}\fs20 bitem\fs22\par
+{\pntext\f2\'B7\tab}\fs20 citem\fs22\par
 
 \pard
 {\pntext\f0 1.\tab}{\*\pn\pnlvlbody\pnf0\pnindent0\pnstart1\pndec{\pntxta.}}
-\fi-360\li720\sa200\sl276\slmult1\f1\fs20 aitem\f0\fs22\par
-{\pntext\f0 2.\tab}\f1\fs20 bitem\f0\fs22\par
-{\pntext\f0 3.\tab}\f1\fs20 citem\f0\fs22\par
+\fi-360\li720\sa200\sl276\slmult1\fs20 aitem\fs22\par
+{\pntext\f0 2.\tab}\fs20 bitem\fs22\par
+{\pntext\f0 3.\tab}\fs20 citem\fs22\par
 
-\pard\sa200\sl276\slmult1\par
+\pard\sa200\sl276\slmult1\f1\par
+ \par
 }</template>
-
+<script src="jquery-3.1.1.js"></script>
 <script src="parser.js"></script>
 <div id="documentcontainer"></div>
 <button onclick="downloadRTF();">download</button>
