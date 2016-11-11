@@ -1,5 +1,37 @@
 
 
+function htmlToRtf(html){
+
+  var tokens = $("div[data-role=token]").toArray();
+  var tokensString = "";
+
+  for(var k in tokens){
+    $token = $(tokens[k]);
+    var token = $token.data("token");
+    if(token == "opening" ){
+      if($token.data("allowomit") == true ){
+        tokensString += "{\\*";
+      }else{
+        tokensString += "{";
+
+      }
+    }
+    if(token == "closing" ){
+
+        tokensString += "}";
+
+    }
+    if(token == "char" ){
+      tokensString += ""+$token.html();
+    }else    {
+          tokensString += "\\"+token;
+        }
+  }
+
+
+  console.log(tokensString);
+}
+
 
 function download(filename, text) {
     var pom = document.createElement('a');
@@ -28,64 +60,114 @@ function rtfUnicodeToString(unicode){
 //alert(rtfUnicodeToString("\\'dc"));
 
 
+Array.prototype.peek = function() {
+    return this[this.length-1];
+}
+
+Array.prototype.remove = function() {
+    var what, a = arguments, L = a.length, ax;
+    while (L && this.length) {
+        what = a[--L];
+        while ((ax = this.indexOf(what)) !== -1) {
+            this.splice(ax, 1);
+        }
+    }
+    return this;
+};
 
 
 function parse(rtftext){
 
+  function writeToken(className,addClass,content){
+    if(content == undefined){
+      content ="";
+    }
+    if(jQuery.type(className) === "string"){
+
+
+      return "<div data-role='token' data-token='"+className+"' data-content='"+addClass+"'>"+content+"</div>";
+    }
+    else{
+      var str = "<div data-role='token' ";
+      //console.log(className);
+      for(var k in className){
+        str += " data-"+k+"='"+className[k]+"' "
+
+      }
+
+      str += "'>"+content+"</div>";
+
+      return str;
+    }
+
+  }
+
+  console.log($(writeToken("className","addClass")).data("class"));
+//  console.log($(writeToken("className","addClass")).attr("data-content"));
+//
+  rtftext = rtftext.replace(/\\*\\generator([^\}]*)\}/g,writeToken("generator","$1")+"}");
+  rtftext = rtftext.replace(/\\\*\\pn/g,writeToken("pn",""));
+  rtftext = rtftext.replace(/\\pntxt(.)([^\}]*)\}/g,writeToken("pntxt$1","$2")+"}");
+  rtftext = rtftext.replace(/([^\\]|^)({\\\*)/g,"$1"+writeToken({token:"opening",allowOmit:true}));
+  rtftext = rtftext.replace(/([^\\]|^)({)/g,"$1"+writeToken({token:"opening",allowOmit:false}));
+  rtftext = rtftext.replace(/([^\\]|^)}/g,"$1"+writeToken("closing",""));
+  rtftext = rtftext.replace(/([^\\])}/g,writeToken("closing",""));
+
+  rtftext = rtftext.replace(/\\}/g,writeToken("char","","}"));
+  rtftext = rtftext.replace(/\\{/g,writeToken("char","","{"));
+
+  rtftext = rtftext.replace(/\n/g,writeToken("newline",""));
+  rtftext = rtftext.replace(/\\rtf1/g,writeToken("rtf1","")+"");
+  rtftext = rtftext.replace(/\\ansicpg1252/g,writeToken("ansicpg1252","")+"");
+  rtftext = rtftext.replace(/\\ansi/g,writeToken("ansi","")+"");
+  rtftext = rtftext.replace(/\\nouicompat/g,writeToken("nouicompat","")+"");
+  rtftext = rtftext.replace(/\\fonttbl/g,writeToken("fonttbl","")+"");
+  rtftext = rtftext.replace(/\\cpg1252/g,writeToken("cpg1252","")+"");
+  rtftext = rtftext.replace(/\\deff([0-9]+)/g,writeToken("deff$1","")+"");
+  rtftext = rtftext.replace(/\\viewkind4/g,writeToken("viewkind4","")+"");
+  rtftext = rtftext.replace(/\\uc1/g,writeToken("uc1","")+"");
+  rtftext = rtftext.replace(/\\d/g,writeToken("d","")+"");
+  rtftext = rtftext.replace(/\\sa200/g,writeToken("sa200","")+"");
+  rtftext = rtftext.replace(/\\sl276/g,writeToken("sl276","")+"");
+  rtftext = rtftext.replace(/\\slmult1/g,writeToken("slmult1","")+"");
+  rtftext = rtftext.replace(/\\fs22/g,writeToken("fs22","")+"");
+  rtftext = rtftext.replace(/\\lang7/g,writeToken("lang7","")+"");
+  rtftext = rtftext.replace(/\\pard/g,writeToken("pard","")+"");
+
+  rtftext = rtftext.replace(/\\tab/g,writeToken("tab","")+"");
+  rtftext = rtftext.replace(/\\fi-360/g,writeToken("fi-360","")+"");
+  rtftext = rtftext.replace(/\\li720/g,writeToken("li720","")+"");
+  rtftext = rtftext.replace(/\\sl240/g,writeToken("sl240","")+"");
 
 
 
 
-  rtftext = rtftext.replace(/\\rtf1/g,"<div class='rtf1'></div>");
-  rtftext = rtftext.replace(/\\ansicpg1252/g,"<div class='ansicpg1252'></div>");
-  rtftext = rtftext.replace(/\\ansi/g,"<div class='ansi'></div>");
-  rtftext = rtftext.replace(/\\nouicompat/g,"<div class='nouicompat'></div>");
-  rtftext = rtftext.replace(/\\fonttbl/g,"<div class='fonttbl'></div>");
 
-  rtftext = rtftext.replace(/\\cpg1252/g,"<div class='cpg1252'></div>");
-  rtftext = rtftext.replace(/\\deff0/g,"<div class='deff0'></div>");
-  rtftext = rtftext.replace(/\\viewkind4/g,"<div class='viewkind4'></div>");
-  rtftext = rtftext.replace(/\\uc1/g,"<div class='uc1'></div>");
-  rtftext = rtftext.replace(/\\d/g,"<div class='d'></div>");
-  rtftext = rtftext.replace(/\\sa200/g,"<div class='sa200'></div>");
-  rtftext = rtftext.replace(/\\sl276/g,"<div class='sl276'></div>");
-  rtftext = rtftext.replace(/\\slmult1/g,"<div class='slmult1'></div>");
-  rtftext = rtftext.replace(/\\fs22/g,"<div class='fs22'></div>");
-  rtftext = rtftext.replace(/\\lang7/g,"<div class='lang7'></div>");
-  rtftext = rtftext.replace(/\\pard/g,"<div class='pard'></div>");
+  //rtftext = rtftext.replace(/\\sl240/g,writeToken("sl240","")+"");
 
-  rtftext = rtftext.replace(/\\pntext/g,"<div class='pntext'></div>");
 
-  rtftext = rtftext.replace(/\\tab/g,"<div class='tab'></div>&#9;");
-  rtftext = rtftext.replace(/\\fi-360/g,"<div class='fi-360'></div>");
-  rtftext = rtftext.replace(/\\li720/g,"<div class='li720'></div>");
-  rtftext = rtftext.replace(/\\sl240/g,"<div class='sl240'></div>");
+  rtftext = rtftext.replace(/\\pntext/g,writeToken("pntext","")+"");
+
+  rtftext = rtftext.replace(/\\pnlvlblt/g,writeToken("pnlvlblt","")+"");
+  rtftext = rtftext.replace(/\\pnlvlbody/g,writeToken("pnlvlbody","")+"");
+  rtftext = rtftext.replace(/\\pnf([0-9]+)/g,writeToken("pnf$1","")+"");
+  rtftext = rtftext.replace(/\\pndec/g,writeToken("pndec","")+"");
+  //\pndec
+
+
+  rtftext = rtftext.replace(/\\pnindent([0-9]+)/g,writeToken("pnindent$1","")+"");
+  rtftext = rtftext.replace(/\\pnstart([0-9]+)/g,writeToken("pnstart$1","")+"");
+  rtftext = rtftext.replace(/\\pndec/g,writeToken("pndec","")+"");
+  //rtftext = rtftext.replace(/\\pntxta/g,writeToken("pntxta","")+"");
+  rtftext = rtftext.replace(/\\pn/g,writeToken("pn","")+"");
+
+//pn\pnlvlbody\pnf0\pnindent0\pnstart1\pndec\pntxta
 
 
 
 
 
-
-  //var match = /\\colortbl ((\\red([0-9]+)\\green([0-9]+)\\blue([0-9]+))?;)*/.exec(rtftext);
-
-
-//  console.log(match);
-
-//{\colortbl ;\red255\green0\blue0;\red0\green176\blue80;}
-
-
-  rtftext = rtftext.replace(/([^\\])({\\\*\\)/g,"$1<div class='opening'></div><div class='group' style='display:none'>");
-  rtftext = rtftext.replace(/([^\\]|^)({)/g,"$1<div class='opening'></div><div class='group'>");
-  rtftext = rtftext.replace(/([^\\]|^)}/g,"$1<div class='closing'></div></div>");
-  rtftext = rtftext.replace(/([^\\])}/g,"<div class='closing'></div></div>");
-
-
-
-
-
-
-
-
+  var colorClasses = [];
 
   rtftext = rtftext.replace(/\\colortbl ((\\red([0-9]+)\\green([0-9]+)\\blue([0-9]+))?;)*/g,function(x){
     console.log("XX: "+x);
@@ -95,8 +177,10 @@ function parse(rtftext){
         var res = "";
         if(a0 == ";"){
           res = "<style> .cf0{color: rgb(0,0,0)}</style>";
+          colorClasses.push("cf0");
         }else{
           res = "<style> .cf"+i+"{color: rgb("+r+","+g+","+b+")}</style>";
+          colorClasses.push("cf"+i);
         }
 
         i++;
@@ -107,52 +191,30 @@ function parse(rtftext){
     return x;
   //  console.log(arguments);
   });
-  rtftext = rtftext.replace(/\\colortbl/g,"<div class='colortbl'></div>");
-  rtftext = rtftext.replace(/\\cf([0-9]+)/g,"<div class ='cf$1'></div>");
+  rtftext = rtftext.replace(/\\colortbl/g,""+writeToken("colortbl",""));
+  rtftext = rtftext.replace(/\\cf([0-9]+)/g,writeToken("cf$1",""));
 
+  rtftext = rtftext.replace(/\\b0/g,""+writeToken("b0",""));
+  rtftext = rtftext.replace(/\\b/g,""+writeToken("b",""));
 
+  rtftext = rtftext.replace(/\\i0/g,""+writeToken("i0",""));
+  rtftext = rtftext.replace(/\\i/g,""+writeToken("i",""));
 
+  rtftext = rtftext.replace(/\\ulnone/g,""+writeToken("ulnone",""));
+  rtftext = rtftext.replace(/\\ul/g,""+writeToken("ul",""));
 
-
-
-
-
-
-
-  rtftext = rtftext.replace(/\\b0/g,"<div class='b0'></div><div style='font-weight: bold;'>");
-rtftext = rtftext.replace(/\\b/g,"<div class='b'></div></div>");
-
-    rtftext = rtftext.replace(/\\i0/g,"<div class='i0'></div></i>");
-  rtftext = rtftext.replace(/\\i/g,"<div class='i'></div><i>");
-
-    rtftext = rtftext.replace(/\\ulnone/g,"<div class='ulnone'></div></ul>");
-  rtftext = rtftext.replace(/\\ul/g,"<div class='ul'></div><ul>");
-
-  rtftext = rtftext.replace(/\\par/g,"<div class='par'></div><br></br>");
+  rtftext = rtftext.replace(/\\par/g,""+writeToken("par","")+"<br></br>");
   rtftext = rtftext.replace(/(\\'[0-9a-fA-F]+)/g,function(x){
     //console.log(arguments);
     var cha = rtfUnicodeToString(x);
     //console.log(x+" => "+cha);
     return cha;
   });
-
-  //rtfUnicodeToString
-
-
-
-
-
-
-
-
-
-
-
   rtftext = rtftext.replace(/\\f([0-9]+)\\fnil\\fcharset([0-9]+) ([^;]*);/g,"<style> .f$1 ~ *{font-family: $3}</style>");
-  rtftext = rtftext.replace(/\\f([0-9]+)/g,"<div class ='f$1'></div>");
-  rtftext = rtftext.replace(/\\fnil/g,"<div class ='fnil'></div>");
+  rtftext = rtftext.replace(/\\f([0-9]+)/g,writeToken("f$1",""));
+  rtftext = rtftext.replace(/\\fnil/g,writeToken("fnil",""));
 
-  rtftext = rtftext.replace(/\\fs([0-9]+)/g,"<div class ='fs$1'></div><style> .fs$1 ~ *{font-size: $1px}</style>");
+  rtftext = rtftext.replace(/\\fs([0-9]+)/g,writeToken("fs$1","")+"<style> .fs$1 ~ *{font-size: $1px}</style>");
 //rtftext = rtftext.replace(/>[^<]*([^<])[^<]*</g,function(){
 //  console.log(arguments);
 //});
@@ -189,19 +251,122 @@ for(var i = 0; i<rtftext.length;i++){
 //console.log(inside);
 //console.log(rtftext[i]);
   if(outside && !instyle){
-
-    html+="<div class='char'>"+rtftext[i]+"</div>";
+    html+=writeToken("char","",rtftext[i]);
   }else{
+    html+=rtftext[i];
+  }
+}
+html+=`
+<style>
+div{float:left;white-space:pre;box-sizing: border-box;}
+//.char{display:block}
+.italic{font-style:italic;}
+.underlined{ text-decoration:underline;}
+.bold{font-weight: bold;}
+.tab::before{content: "     ";}
+</style
 
-        html+=rtftext[i];
+`;
 
+
+
+
+$(".rtf").html(html);
+//console.log(html)
+//document.write("<div class='rtf'>"+html+"</div>");
+
+var stack = [];
+stack.push([]);
+var global = [];
+var elements = $(".rtf div[data-role='token']").toArray();
+var depth = 0;
+for(var x in elements){
+  $token = $(elements[x]);
+
+
+
+  var token = $token.data("token");
+
+
+  console.log(token+" "+stack.length);
+
+  if(depth>0 ){
+    $token.hide();
+    console.log("DEPTH !!!!!! "+depth);
+    if(token == "opening"){
+      depth++;
+      continue;
+    }else
+    if(token == "closing"){
+      depth--;
+      continue;
+    }else{
+      continue;
+    }
 
   }
+  if(token == "opening"){
+
+    if($token.data("allowomit") == true){
+      //var nexttoken =
+
+        depth = 1;
+    }else{
+      stack.push([]);
+    }
+  }
+  if(token == "closing"){
+    stack.pop();
+  }
+  if(token == "i"){
+    stack.peek().push("italic");
+  }
+  if(token == "i0"){
+    stack.peek().remove("italic");
+  }
+  if(token == "b"){
+    stack.peek().push("bold");
+  }
+  if(token == "b0"){
+    stack.peek().remove("bold");
+  }
+  if(token == "ul"){
+    stack.peek().push("underlined");
+  }
+  if(token == "ulnone"){
+    stack.peek().remove("underlined");
+  }
+  if(token == "char"){
+    var classes = stack.peek();
+    $token.addClass("char");
+    for(var k in classes){
+      $token.addClass(classes[k]);
+
+    }
+    /*for(var k in global){
+      $token.addClass(global[k]);
+
+    }*/
+  }
+  if(token == "tab"){
+    $token.addClass("tab");
+  }
+
+  for (var k in colorClasses){
+    //colorClasses
+    if(token == colorClasses[k]){
+      var classes = stack.peek();
+      for(var k in classes){
+        stack.peek().push(colorClasses[k]);
+
+      }
+    }
+  }
+
+
+
 
 }
-html+="<style> .char{float:left;white-space:pre;}</style>";
-//console.log(html)
-document.write("<div class='rtf'>"+html+"</div>");
 
 
 var addclass ="";
@@ -218,6 +383,11 @@ var addclass ="";
       $(e).addClass(addclass);
     }
   });
+  //console.log(html);
+  //
+  //
+  //
+  console.log(htmlToRtf(html));
 return;
 
   /*
@@ -382,5 +552,9 @@ return;
     }
 
 }
-var template = document.getElementById("rtftemplate");
-parse(template.innerHTML);
+$(window).on('load', function() {
+
+  var template = document.getElementById("rtftemplate");
+  parse(template.innerHTML);
+
+});
