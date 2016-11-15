@@ -2,6 +2,8 @@
 
 var codePage =
 [
+//  ["\\}" , "}", "Double quote "],
+  //["\\{", "{", " Number "],
 //  ["\\'20", " ", " Space"],
   //["\\'21", "!", " Exclamation mark "],
   ["\\'22" , "\"", "Double quote "],

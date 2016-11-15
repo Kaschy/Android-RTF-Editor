@@ -50,13 +50,13 @@ function download(filename, text) {
 }
 
 function downloadRTF(){
-  var template = document.getElementById("rtftemplate");
-  var content = template.innerHTML;
+  generateRtf();
+  var content = $(".rtfout").html();
   download("test.rtf",content);
 }
 function rtfUnicodeToString(unicode){
   for(var k in codePage){
-    if(codePage[k][0] == unicode.toLowerCase()){
+    if(codePage[k][0] == unicode.toLowerCase() || codePage[k][0] == unicode){
       return codePage[k][1];
     }
   }
@@ -127,34 +127,6 @@ function parse(rtf){
         content ="";
       }
       return function(){writeToken(className,content)};
-    }
-
-
-    function writeToken1(className,addClass,content){
-      if(content == undefined){
-        content ="";
-      }
-      if(addClass == undefined){
-        addClass ="";
-      }
-      if(jQuery.type(className) === "string"){
-
-      //  return $("<div data-role='token' data-token='"+className+"'>"+content+"</div>").data("content",addClass).html();
-        return "<div data-role='token' data-token='"+className+"' data-content='"+addClass+"'>"+content+"</div>";
-      }
-      else{
-        var str = "<div data-role='token' ";
-        //console.log(className);
-        for(var k in className){
-          str += " data-"+k+"='"+className[k]+"' "
-
-        }
-
-        str += "'>"+content+"</div>";
-
-        return str;
-      }
-
     }
     function pushf(str){
       return function(){stack.peek().push(str);};
@@ -298,7 +270,6 @@ function parse(rtf){
   }
 //  console.log(tokensWritten);
   $(".rtf").append(`
-    <p>x</p>
   <style>
   div{float:left;white-space:pre;box-sizing: border-box;}
   //.char{display:block}
@@ -306,11 +277,85 @@ function parse(rtf){
   .underlined{ text-decoration:underline;}
   .bold{font-weight: bold;}
   .tab::before{content: "     ";}
-  </style
-
+  </style>
+  <style>
+  .cursor{
+    -webkit-box-shadow: inset 2px 0px 0px 0px rgba(50, 50, 50, 1);
+    -moz-box-shadow:    inset 2px 0px 0px 0px rgba(50, 50, 50, 1);
+    box-shadow:         inset 2px 0px 0px 0px rgba(50, 50, 50, 1);
+  }
+  </style>
   `);
 
+  $(".rtf").append("<div class='cursor ' > </div>");
 
+
+  function isPrintable(code){
+    var valid =
+    (keycode > 47 && keycode < 58)   || // number keys
+    keycode == 32 || keycode == 13   || // spacebar & return key(s) (if you want to allow carriage returns)
+    (keycode > 64 && keycode < 91)   || // letter keys
+    (keycode > 95 && keycode < 112)  || // numpad keys
+    (keycode > 185 && keycode < 193) || // ;=,-./` (in order)
+    (keycode > 218 && keycode < 223);   // [\]' (in order)
+
+return valid;
+  }
+
+  $("html").keydown(function(e) {
+    console.log("key");
+
+    if (e.keyCode == '38') {
+        // up arrow
+    }
+    else if (e.keyCode == '40') {
+        // down arrow
+    }
+    else if (e.keyCode == '37') {
+       // left arrow
+       //
+       var cursor =  $('.cursor');
+       var next = cursor.prevAll(".char:first");
+       if(next.length>0){
+         cursor.removeClass("cursor");
+         next.addClass("cursor");
+       }
+
+
+       //$('.cursor').insertBefore($('.cursor').prevAll(".char:first"));
+
+    }
+    else if (e.keyCode == '39') {
+       // right arrow
+       var cursor =  $('.cursor');
+       var next = cursor.nextAll(".char:first");
+       if(next.length>0){
+         cursor.removeClass("cursor");
+         next.addClass("cursor");
+       }
+        //$('.cursor').insertAfter($('.cursor').nextAll(".char:first"));
+    }else if (e.keyCode == '8') {
+      var cursor =  $('.cursor');
+      cursor.prevAll(".char:first").remove();
+      generateRtf();
+    }else //if(isPrintable(e.keyCode))
+    {
+      var str = String.fromCharCode(e.keyCode);
+      $('.cursor:first').clone().removeClass("cursor").html(str).data("token",str).insertBefore(".cursor");
+      generateRtf();
+      //$("<div data-role='token'>")83
+    }
+
+  });
+
+  generateRtf();
+
+
+}
+
+
+
+function generateRtf(){
   var tokens = $(".rtf div[data-role=token]").toArray();
   var tokensString = "";
 
