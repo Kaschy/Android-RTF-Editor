@@ -134,7 +134,7 @@ var codePage =
   ["\\'aa", "ª", " Feminine ordinal "],
   ["\\'ab", "«", " Left angle quotes "],
   ["\\'ac", "¬", " Not sign "],
-  ["\\-", "(-)", " Soft hyphen"],
+  ["\\-", "-", " Soft hyphen"],
   ["\\'ae", "®", " Registered trademark"],
   ["\\'af", "¯", " Macron accent "],
   ["\\'b0", "°", " Degree sign "],
@@ -218,9 +218,9 @@ var codePage =
   ["\\'fe", "þ", " Lowercase thorn "],
   ["\\'ff", "ÿ", " y-diaeresis "],
 ];
-
+/*
 for(var k in codePage){
   console.log(codePage[k][1]);
 }
-
+*/
 //throw new Error("Something went badly wrong!");

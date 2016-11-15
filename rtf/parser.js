@@ -61,7 +61,7 @@ function rtfUnicodeToString(unicode){
     }
   }
   return unicode;
-  console.log("not found: "+ unicode);
+//  console.log("not found: "+ unicode);
 }
 function stringToRtfUnicode(stri){
   for(var k in codePage){
@@ -69,7 +69,7 @@ function stringToRtfUnicode(stri){
       return codePage[k][0];
     }
   }
-  console.log("not found: "+ stri);
+//  console.log("not found: "+ stri);
   return stri;
 }
 
@@ -236,11 +236,12 @@ function parse(rtf){
     handleToken(/^(\\pn)/);
     handleToken(/^(\\b0)/);
     handleToken(/^(\\b)/);
-    handleToken(/(\\colortbl ((\\red([0-9]+)\\green([0-9]+)\\blue([0-9]+))?;)*)/,function($1,x){
-      console.log("XX: ",arguments);
+    handleToken(/^(\\colortbl (((\\red([0-9]+)\\green([0-9]+)\\blue([0-9]+))?;)*))/,function($1,a0,x){
+      console.log("XX: ",x);
       var $token = this;
       var i = 0;
-        x = x.replace(/(\\red([0-9]+)\\green([0-9]+)\\blue([0-9]+));|;/,function(a0,a1,r,g,b){
+        x = x.replace(/(\\red([0-9]+)\\green([0-9]+)\\blue([0-9]+));|;/g,function(a0,a1,r,g,b){
+          console.log("XY: ",arguments);
           var res = "";
           if(a0 == ";"){
             $token.append(" <style> .cf0{color: rgb(0,0,0)}</style>");
@@ -252,13 +253,23 @@ function parse(rtf){
           i++;
         });
     });
-    handleToken(/^(\\cf([0-9]+))/);
+    handleToken(/^(\\(cf[0-9]+))/,function($1,$2,$3){
+      //console.log(arguments);
+      stack.peek()['color'] = $3;
+      //stack.peek().push($3);
+    });
     handleToken(/^(\\i0)/,popf("italic"));
     handleToken(/^(\\i)/,pushf("italic"));
-    handleToken(/^(\\ulnone)/);
-    handleToken(/^(\\ul)/);
-    handleToken(/^(\\par)/);
-    handleToken(/^(\\'[0-9a-fA-F]+)/,rtfUnicodeToString);
+    handleToken(/^(\\ulnone)/,popf("underlined"));
+    handleToken(/^(\\ul)/,pushf("underlined"));
+    handleToken(/^(\\par)/,function(){
+      $("</br>").insertAfter(this);
+    });
+    handleToken(/^(\\'[0-9a-fA-F]+)/,function($1){
+      this.html(rtfUnicodeToString($1));
+      this.data("token","char");
+      this.addClass("escaped");
+    });
     handleToken(/^(\\f([0-9]+)\\fnil\\fcharset([0-9]+) ([^;]*);)/,function($1,$2,$3,$4){
       this.data("token",$1);
       this.html("<style> .f"+$2+" ~ *{font-family: "+$4+"}</style>");
@@ -270,14 +281,24 @@ function parse(rtf){
       this.html("<style> .fs"+$2+" ~ *{font-size: "+$2+"px}</style>");
     });
     handleToken(/^(.)/,function($1){
+      var classes = stack.peek();
+      this.addClass("char");
+      for(var k in classes){
+        this.removeClass(classes[k]);
+        this.addClass(classes[k]);
+
+      }
+
       this.data("token","char");
       this.html($1);
       //writeToken("char",$1);
     });
 
+
   }
 //  console.log(tokensWritten);
   $(".rtf").append(`
+    <p>x</p>
   <style>
   div{float:left;white-space:pre;box-sizing: border-box;}
   //.char{display:block}
@@ -301,12 +322,11 @@ function parse(rtf){
       tokensString += ""+stringToRtfUnicode($token.html());
     }
     else{
+      if(token != undefined)
           tokensString += token;
     }
   }
-
   $(".rtfout").html(tokensString);
-
 }
 function parse1(rtftext){
 
