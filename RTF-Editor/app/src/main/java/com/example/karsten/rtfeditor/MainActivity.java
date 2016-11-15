@@ -1,8 +1,10 @@
 package com.example.karsten.rtfeditor;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,9 +14,30 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+
+/* An instance of this class will be registered as a JavaScript interface */
+class MyJavaScriptInterface
+{
+    @JavascriptInterface
+    @SuppressWarnings("unused")
+    public void processHTML(String html)
+    {
+        Log.d("tag",html);
+    }
+}
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+
+    //final Context myApp = this;
+
+
+
+   // final WebView browser = (WebView) findViewById(R.id.webview);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +63,26 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        WebView browser = (WebView) findViewById(R.id.webview);
+
+        browser.getSettings().setJavaScriptEnabled(true);
+
+// Register a new JavaScript interface called HTMLOUT
+        browser.addJavascriptInterface(new MyJavaScriptInterface(), "HTMLOUT");
+
+// WebViewClient must be set BEFORE calling loadUrl!
+       /* browser.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url)
+            {
+        // This call inject JavaScript into the page which just finished loading.
+                browser.loadUrl("javascript:window.HTMLOUT.processHTML('<head>'+document.getElementsByTagName('html')[0].innerHTML+'</head>');");
+            }
+        });*/
+
+// load a web page
+        browser.loadUrl("file:///android_asset/test.html");
     }
 
     @Override

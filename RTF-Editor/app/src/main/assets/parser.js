@@ -301,12 +301,20 @@ function parse(rtf){
 
 return valid;
   }
-
   $("html").keydown(function(e) {
     console.log("key");
 
     if (e.keyCode == '38') {
         // up arrow
+    }
+    else if (e.keyCode == '13') {
+        // enter
+        $('<div>')
+        .data("role","token")
+        .data("token","\\par")
+        .insertBefore(".cursor");
+        $('</br>')
+        .insertBefore(".cursor");
     }
     else if (e.keyCode == '40') {
         // down arrow
@@ -336,15 +344,21 @@ return valid;
         //$('.cursor').insertAfter($('.cursor').nextAll(".char:first"));
     }else if (e.keyCode == '8') {
       var cursor =  $('.cursor');
-      cursor.prevAll(".char:first").remove();
+      cursor.prevAll(".char:first,div[data-token='\\par']:first").remove();
       generateRtf();
-    }else //if(isPrintable(e.keyCode))
-    {
-      var str = String.fromCharCode(e.keyCode);
+    }
+
+  });
+  $("html").keypress(function(e) {
+    console.log("key: ",e.which,e.keyCode,String.fromCharCode(e.which));
+
+
+
+      var str = String.fromCharCode(e.which);
       $('.cursor:first').clone().removeClass("cursor").html(str).data("token",str).insertBefore(".cursor");
       generateRtf();
       //$("<div data-role='token'>")83
-    }
+
 
   });
 
