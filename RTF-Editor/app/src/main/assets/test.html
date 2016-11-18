@@ -30,10 +30,20 @@ In another font \'e4 \'fc \'f6\par
 <script src="writer.js"></script>
 <script src="parser.js"></script>
 <div class=''><pre class='rtfin'></pre></div></br>
+
 <div class='rtf'></div></br>
 <div class=''><pre class='rtfout'></pre></div></br>
 <div id="documentcontainer"></div>
-<button onclick="downloadRTF();">download</button>
+
+
+<!--<button onclick="downloadRTF();">download</button>-->
+<!--
+<textarea type="text" style="disply:none" id="theinput" value=""></textarea>-->
+<textarea id="theinput" style="position: fixed; left:0px;
+top:0px;width:0vw;height:0vh;opacity:0;    height:0px;
+    overflow:visible;
+    pointer-events:none;
+    background:none !important;"></textarea>
 
 
 
@@ -45,3 +55,21 @@ $(document).load(function(){
 
 
 </script>
+/*
+
+
+<!-- TODO:
+
+UI:
+
+-open file
+-save file
+-fonttbl
+-color
+-ul
+-bold
+-italic
+
+ -->
+
+ */

@@ -1,5 +1,9 @@
+var ua = navigator.userAgent.toLowerCase();
+var isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
 
-
+function openFile(a){
+  parse(atob(a));
+}
 function htmlToRtf(html){
 
   var tokens = $("div[data-role=token]").toArray();
@@ -93,12 +97,12 @@ Array.prototype.remove = function() {
 
 
 function parse(rtf){
-
+  $(".rtf").html("");
   //parser
   var stack = [];
   stack.push([]);
   var global = [];
-  var elements = $(".rtf div[data-role='token']").toArray();
+  //var elements = $(".rtf div[data-role='token']").toArray();
   var depth = 0;
 
   //tokenize
@@ -301,18 +305,72 @@ function parse(rtf){
 
 return valid;
   }
-  $("html").keydown(function(e) {
-    console.log("key");
 
+
+
+
+  var getKeyCode = function (str) {
+      return str.charCodeAt(str.length - 1);
+  }
+
+
+  function setCaretPosition(elemId, caretPos) {
+      var elem = document.getElementById(elemId);
+
+      if(elem != null) {
+          if(elem.createTextRange) {
+              var range = elem.createTextRange();
+              range.move('character', caretPos);
+              range.select();
+          }
+          else {
+              if(elem.selectionStart) {
+                  elem.focus();
+                  elem.setSelectionRange(caretPos, caretPos);
+              }
+              else
+                  elem.focus();
+          }
+      }
+  }
+  $("#theinput").change(function(){
+    console.log("input: "+$("#theinput").val());
+  });
+
+  var before ="";
+
+  $("#theinput").keydown(function(e) {
+    before = this.value;
+  });
+  $("#theinput").keyup(function(e) {
+    //e.preventDefault();
+
+    setCaretPosition("#theinput",this.value.length);
+    console.log("keycode "+ e.keyCode +" which "+ e.which);
+    var kCd = e.keyCode || e.which;
+    if (kCd != 8 && (kCd == 0 || kCd == 229)) { //for android chrome keycode fix
+
+      kCd = getKeyCode(this.value);
+      e.keyCode = kCd;
+      e.which = kCd;
+    }
+    console.log("before: "+before+" after: "+this.value);
+
+
+    console.log("key "+this.value+"  "+String.fromCharCode(e.keyCode));
+
+
+    //this.value ="aaaa";
     if (e.keyCode == '38') {
         // up arrow
     }
     else if (e.keyCode == '13') {
         // enter
-        $('<div>')
-        .data("role","token")
-        .data("token","\\par")
-        .insertBefore(".cursor");
+        var div = $('<div>');
+        div.data("role","token");
+        div.data("token","\\par");
+        div.addClass("char");
+        div.insertBefore(".cursor");
         $('</br>')
         .insertBefore(".cursor");
     }
@@ -338,36 +396,76 @@ return valid;
        var cursor =  $('.cursor');
        var next = cursor.nextAll(".char:first");
        if(next.length>0){
+
          cursor.removeClass("cursor");
          next.addClass("cursor");
        }
         //$('.cursor').insertAfter($('.cursor').nextAll(".char:first"));
-    }else if (e.keyCode == '8') {
+    }else if ((before.length-this.value.length>0) || e.keyCode == '8') {
       var cursor =  $('.cursor');
-      cursor.prevAll(".char:first,div[data-token='\\par']:first").remove();
-      generateRtf();
-    }
+      var next = cursor.prevAll(".char:first")
+      console.log("tag "+next.next().prop("tagName"));
+      if(next.next().prop("tagName") == "BR"){
+        next.next().remove();
 
-  });
-  $("html").keypress(function(e) {
-    console.log("key: ",e.which,e.keyCode,String.fromCharCode(e.which));
+      }
+      next.remove();
 
 
+    //  generateRtf();
+    }else{
+      console.log("key:  " + e.which+"  "+e.keyCode+"  "+String.fromCharCode(e.keyCode));
 
-      var str = String.fromCharCode(e.which);
+      var str = String.fromCharCode(e.keyCode);
       $('.cursor:first').clone().removeClass("cursor").html(str).data("token",str).insertBefore(".cursor");
-      generateRtf();
-      //$("<div data-role='token'>")83
+      //generateRtf();
+    }
+    this.value = "x";
 
+    //$("<div data-role='token'>")83
 
   });
+  //$("html")
+//window.ANDROID.inflateKeyboard();
+  $(".char").on("touchstart",function(e){
+    //tou
+  //  $("#theinput").focus();
+    //prompt();
+    var cursor =  $('.cursor');
+    var next = $(e.target);
+    if(next.length>0){
+      cursor.removeClass("cursor");
+      next.addClass("cursor");
+    //  window.ANDROID.keyboard(true);
+    }
+    //$("#theinput").focus();
+    $('#theinput').click(function(e){ $(this).focus(); });
+
+   $('body').click(function(e)
+   {
+      if(!$('#theinput').is(":focus")){
+        $('#theinput').trigger('click');
+      }
+
+   });
+  });
+
 
   generateRtf();
 
 
 }
 
+function test(a){
+  $(".rtf").html(atob(a));
+  //$(".rtf").html(a+$(".rtf").html());
+}
 
+function focus()
+{
+
+  $('#theinput').trigger('click');
+}
 
 function generateRtf(){
   var tokens = $(".rtf div[data-role=token]").toArray();
@@ -387,460 +485,26 @@ function generateRtf(){
   }
   $(".rtfout").html(tokensString);
 }
-function parse1(rtftext){
 
-
-  $(".rtfin").html(rtftext);
-
-  function writeToken(className,addClass,content){
-    if(content == undefined){
-      content ="";
-    }
-    if(addClass == undefined){
-      addClass ="";
-    }
-    if(jQuery.type(className) === "string"){
-
-    //  return $("<div data-role='token' data-token='"+className+"'>"+content+"</div>").data("content",addClass).html();
-      return "<div data-role='token' data-token='"+className+"' data-content='"+addClass+"'>"+content+"</div>";
-    }
-    else{
-      var str = "<div data-role='token' ";
-      //console.log(className);
-      for(var k in className){
-        str += " data-"+k+"='"+className[k]+"' "
-
-      }
-
-      str += "'>"+content+"</div>";
-
-      return str;
-    }
-
-  }
-  function handleToken(regex,action){
-    rtftext = rtftext.replace(regex,function(){
-      alert(arguments[0]);
-      if(action != undefined){
-          action.apply(arguments);
-      }
-      return "";
-    });
-  }
-  handleToken(/^(\\*\\generator([^\}]*))/);
-  handleToken(/^(\\\*\\pn)/);
-  handleToken(/^(\\pntxt(.)([^\}]*))/);
-  handleToken(/^([^\\]|^)({\\\*)/,"$1"+writeToken({token:"opening",allowOmit:true}));
-  handleToken(/^([^\\]|^)({)/,"$1"+writeToken({token:"opening",allowOmit:false}));
-  handleToken(/^([^\\]|^)}/,"$1"+writeToken("closing",""));
-  handleToken(/^([^\\])}/,writeToken("closing",""));
-  handleToken(/^(\\})/,writeToken("char","","}"));
-  handleToken(/^(\\{)/,writeToken("char","","{"));
-  handleToken(/^(\n)/,writeToken("char","","\n"));
-  handleToken(/^(\\rtf1)/);
-  handleToken(/^(\\ansicpg1252)/);
-  handleToken(/^(\\ansi)/);
-  handleToken(/^(\\nouicompat)/);
-  handleToken(/^(\\fonttbl)/);
-  handleToken(/^(\\cpg1252)/);
-  handleToken(/^(\\deff([0-9]+))/);
-  handleToken(/^(\\viewkind4)/);
-  handleToken(/^(\\uc1)/);
-  handleToken(/^(\\d)/);
-  handleToken(/^(\\sa200)/);
-  handleToken(/^(\\sl276)/);
-  handleToken(/^(\\slmult1)/);
-  handleToken(/^(\\fs22)/);
-  handleToken(/^(\\lang7)/);
-  handleToken(/^(\\pard)/);
-  handleToken(/^(\\tab)/);
-  handleToken(/^(\\fi-360)/);
-  handleToken(/^(\\li720)/);
-  handleToken(/^(\\sl240)/);
-  handleToken(/^(\\pntext)/);
-  handleToken(/^(\\pnlvlblt)/);
-  handleToken(/^(\\pnlvlbody)/);
-  handleToken(/^(\\pnf([0-9]+))/);
-  handleToken(/^(\\pndec)/);
-  handleToken(/^(\\pnindent([0-9]+))/);
-  handleToken(/^(\\pnstart([0-9]+))/);
-  handleToken(/^(\\pndec)/);
-  handleToken(/^(\\pn)/);
-  handleToken(/^(\\b0)/);
-  handleToken(/^(\\b)/);
-  var colorClasses = [];
-  handleToken(/\\colortbl ((\\red([0-9]+)\\green([0-9]+)\\blue([0-9]+))?;)*/,function(x){
-    console.log("XX: "+x);
-    var token ="colortbl";
-    //x = x.replace(/(\\red([0-9]+)\\green([0-9]+)\\blue([0-9]+));/,"color: rgb($2,$3,$4)");
-    var i = 0;
-      x = x.replace(/(\\red([0-9]+)\\green([0-9]+)\\blue([0-9]+));|;/,function(a0,a1,r,g,b){
-        var res = "";
-        if(a0 == ";"){
-          token += " \\red0\\green0\\blue0;";
-          res = //writeToken("colortbl \\red0\\green0\\blue0;","")+
-          " <style> .cf0{color: rgb(0,0,0)}</style>";
-          colorClasses.push("cf0");
-        }else{
-          token += " \\red"+r+"\\green"+g+"\\blue"+b+";";
-          res = // writeToken("colortbl \\red"+r+"\\green"+g+"\\blue"+b+";","")+
-          " <style> .cf"+i+"{color: rgb("+r+","+g+","+b+")}</style>";
-          colorClasses.push("cf"+i);
-        }
-        i++;
-        return  res;
-        console.log(arguments);
-      });
-    return writeToken(token,"") +x;
-  });
-  handleToken(/^(\\cf([0-9]+))/);
-  handleToken(/\\i0/);
-  handleToken(/\\i/);
-  handleToken(/\\ulnone/);
-  handleToken(/\\ul/);
-  handleToken(/\\par/);
-  handleToken(/^(\\'[0-9a-fA-F]+)/,rtfUnicodeToString);
-  handleToken(/\\f([0-9]+)\\fnil\\fcharset([0-9]+) ([^;]*);/,writeToken("f$1","")+writeToken("fnil","")+writeToken("fcharset$2 $3;","")+"<style> .f$1 ~ *{font-family: $3}</style>");
-  handleToken(/\\f([0-9]+)/,writeToken("f$1",""));
-  handleToken(/\\fnil/,writeToken("fnil",""));
-  handleToken(/\\fs([0-9]+)/,writeToken("fs$1","")+"<style> .fs$1 ~ *{font-size: $1px}</style>");
-
-
-
-
-
-
-var html = "";
-var instyle = false;
-var outside = true;
-for(var i = 0; i<rtftext.length;i++){
-
-  if(rtftext.indexOf("<style>",i)==i){
-    instyle = true;
-  }
-  if(rtftext.indexOf("</style>",i)==i){
-    instyle = false;
-  }
-
-  if(rtftext[i] == '>'){
-    outside = true;
-    html+=rtftext[i];
-    continue;
-    //console.log(rtftext[i]);
-  }
-  if(rtftext[i]== '<'){
-    outside = false;
-    html+=rtftext[i];
-    continue;
-    //console.log(rtftext[i]);
-  }
-//console.log(inside);
-//console.log(rtftext[i]);
-  if(outside && !instyle){
-    html+=writeToken("char","",rtftext[i]);
-  }else{
-    html+=rtftext[i];
-  }
-}
-html+=`
-<style>
-div{float:left;white-space:pre;box-sizing: border-box;}
-//.char{display:block}
-.italic{font-style:italic;}
-.underlined{ text-decoration:underline;}
-.bold{font-weight: bold;}
-.tab::before{content: "     ";}
-</style
-
-`;
-
-
-
-
-$(".rtf").html(html);
-//console.log(html)
-//document.write("<div class='rtf'>"+html+"</div>");
-
-var stack = [];
-stack.push([]);
-var global = [];
-var elements = $(".rtf div[data-role='token']").toArray();
-var depth = 0;
-for(var x in elements){
-  $token = $(elements[x]);
-
-
-
-  var token = $token.data("token");
-
-
-  console.log(token+" "+stack.length);
-
-  if(depth>0 ){
-    $token.hide();
-    console.log("DEPTH !!!!!! "+depth);
-    if(token == "opening"){
-      depth++;
-      continue;
-    }else
-    if(token == "closing"){
-      depth--;
-      continue;
-    }else{
-      continue;
-    }
-
-  }
-  if(token == "opening"){
-
-    if($token.data("allowomit") == true){
-      //var nexttoken =
-
-        depth = 1;
-    }else{
-      stack.push([]);
-    }
-  }
-  if(token == "closing"){
-    stack.pop();
-  }
-  if(token == "i"){
-    stack.peek().push("italic");
-  }
-  if(token == "i0"){
-    stack.peek().remove("italic");
-  }
-  if(token == "b"){
-    stack.peek().push("bold");
-  }
-  if(token == "b0"){
-    stack.peek().remove("bold");
-  }
-  if(token == "ul"){
-    stack.peek().push("underlined");
-  }
-  if(token == "ulnone"){
-    stack.peek().remove("underlined");
-  }
-  if(token == "char"){
-    var classes = stack.peek();
-    $token.addClass("char");
-    for(var k in classes){
-      $token.addClass(classes[k]);
-
-    }
-    /*for(var k in global){
-      $token.addClass(global[k]);
-
-    }*/
-  }
-  if(token == "tab"){
-    $token.addClass("tab");
-  }
-
-  for (var k in colorClasses){
-    //colorClasses
-    if(token == colorClasses[k]){
-      var classes = stack.peek();
-      for(var k in classes){
-        stack.peek().push(colorClasses[k]);
-
-      }
-    }
-  }
-
-
-
-
-}
-
-
-var addclass ="";
-  $(".rtf *").each(function(a,e){
-    var firstClass = e.className.split(' ')[0];
-
-    var match;
-    match = /cf([0-9]+)/.exec(firstClass);
-    if(match){
-      //  console.log(match);
-        addclass = firstClass;
-    }else{
-      //console.log(e.className);
-      $(e).addClass(addclass);
-    }
-  });
-  //console.log(html);
-  //
-  //
-  //
-  console.log(htmlToRtf(html));
-return;
-
-  /*
-  rtftext = rtftext.replace(/\\fonttbl/,"<div class="fonttbl"></div>");
-  rtftext = rtftext.replace(/\\fonttbl/,"<div class="fonttbl"></div>");
-  rtftext = rtftext.replace(/\\fonttbl/,"<div class="fonttbl"></div>");
-  rtftext = rtftext.replace(/\\fonttbl/,"<div class="fonttbl"></div>");
-  rtftext = rtftext.replace(/\\fonttbl/,"<div class="fonttbl"></div>");
-*/
-
-
-  console.log(rtftext);
-  return;
-  var html;
-
-  var groupStateStack = [];
-  var currentGroupState = null;
-
-
-//  div replace
-
-
-  for(var i=0;i<rtftext.length;i++){
-    var nextToken;
-
-    /*
-    parse brace
-      parse groupignore -> set flag for ignore
-        parse action -> if ignore flag, perform brace skip
-          parse arguments _> parse arguments depensing on action
-            parse html -> take any token to }\{
-
-
-
-     */
-
-    function parseArgument(){//ets next argument from token stream
-
-
-    }
-    function parseArgument(){//ets next argument from token stream
-
-
-    }
-
-
-
-    var nextTokenEquals = function(str,cb){
-      var equals;
-      if(str instanceof RegExp){
-        var match = str.exec(rtftext.substring(i));
-        if (match != null) {
-          console.log(match);
-            //console.log("match found at " + match.index);
-            //console.log(match);
-            equals = (match.index == 0);
-            if(equals){
-              nextToken = match[0];
-            }
-        }
-
-      }else{
-        equals = (rtftext.indexOf(str,i) == i);
-        if(equals){
-          nextToken = str;
-        }
-      }
-      if(equals){
-        i+= nextToken.length;
-        console.log(nextToken);
-      }
-
-      if(equals && cb){
-        cb();
-        //carry out action assigned to destination
-      }
-
-      return equals;
-    }
-    function write(str){
-        html+=str;
-    }
-
-
-
-    if(false){}
-    else if(nextTokenEquals('\\')){
-      if(
-        nextTokenEquals('i',function(){
-          write("<i>");
-        })
-        ||nextTokenEquals('i0',function(){
-          write("</i>");
-        })
-        ||nextTokenEquals('ul',function(){
-          write("<ul>");
-        })
-        ||nextTokenEquals('ulnone',function(){
-          write("</ul>");
-        })
-      ){
-
-      }
-
-    }
-    else if(nextTokenEquals('{')){
-
-      //section destinationchanges
-      if((nextTokenEquals('\\*') || nextTokenEquals('\\')) &&
-          nextTokenEquals('footnote')
-          ||nextTokenEquals(/.*deff0\\/)
-        ||nextTokenEquals('header')
-        ||nextTokenEquals('rtf1')
-        ||nextTokenEquals('footer')
-        ||nextTokenEquals('pict')
-        ||nextTokenEquals('info')
-        ||nextTokenEquals('fonttbl')
-        ||nextTokenEquals('stylesheet')
-        ||nextTokenEquals('colortbl')
-      )
-      {
-        groupStateStack.push(currentGroupState);
-        currentGroupState = new GroupState(nextToken);
-        console.log("push");
-      }else{
-        //if the first control word is not known skip the whole Group
-        //stack braces to remove the right frame
-        var depth = 1;
-        for(;depth>0;i++){
-          if(rtftext[i] == '{'){
-            depth++;
-          }
-          if(rtftext[i] == '}'){
-            depth--;
-          }
-        }
-
-
-
-
-      }
-        //endsection destinationchanges
-      /*
-      If the character is an opening brace (),
-      the reader stores its current state on the stack
-      */
-    }
-    else if(nextTokenEquals('}')){
-      currentGroupState = groupStateStack.pop();
-      console.log("pop");
-      /*
-       If the character is a closing brace (),
-       the reader retrieves the current state from the stack.
-      */
-    }
-    else {
-
-
-      }
-
-
-    }
-
-}
 $(window).on('load', function() {
 
   var template = document.getElementById("rtftemplate");
   parse(template.innerHTML);
+
+  if(isAndroid) {
+
+    $("html").append(`
+<style>
+.rtfin,
+.rtfout{
+
+  display:none;
+}
+
+
+</style>
+
+      `);
+  }
 
 });

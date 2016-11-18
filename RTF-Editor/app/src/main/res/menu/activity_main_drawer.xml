@@ -3,6 +3,14 @@
 
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/nav_open"
+            android:icon="@drawable/ic_menu_camera"
+            android:title="Öffnen" />
+        <item
+            android:id="@+id/nav_save"
+            android:icon="@drawable/ic_menu_camera"
+            android:title="Speichern" />
+        <item
             android:id="@+id/nav_camera"
             android:icon="@drawable/ic_menu_camera"
             android:title="Import" />
